@@ -13,9 +13,9 @@ void loop() {
   brightness = (analogRead(readPIN) / 1023.) * 255;
   Serial.println(brightness);
 
-  if (brightness < 2) {
+  if (brightness < 2) { // There was some noise when at 0, necessary to stop the blinking
     brightness = 0;
   }
-  
+
   analogWrite(redPin, brightness);
 }
