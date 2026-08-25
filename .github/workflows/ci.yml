@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Structural checks (layout, setup/loop, per-sketch docs)
+        run: python3 tests/validate_sketches.py
+
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install arduino-cli (pinned version)
+        run: |
+          ARDUINO_CLI_VERSION=1.5.1
+          curl -fsSL "https://github.com/arduino/arduino-cli/releases/download/v${ARDUINO_CLI_VERSION}/arduino-cli_${ARDUINO_CLI_VERSION}_Linux_64bit.tar.gz" -o /tmp/arduino-cli.tar.gz
+          mkdir -p "$HOME/bin"
+          tar xzf /tmp/arduino-cli.tar.gz -C "$HOME/bin" arduino-cli
+          chmod +x "$HOME/bin/arduino-cli"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Install AVR core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+      - name: Compile every sketch (Arduino Uno)
+        run: |
+          for dir in */; do
+            name="${dir%/}"
+            case "$name" in
+              tests | .github) continue ;;
+            esac
+            if [ ! -f "$name/$name.ino" ]; then
+              echo "ERROR: $name/ is not a sketch folder (no $name/$name.ino)" >&2
+              exit 1
+            fi
+            echo "== Compiling $name"
+            arduino-cli compile --fqbn arduino:avr:uno --clean "$name"
+          done

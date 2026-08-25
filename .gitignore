@@ -1,0 +1,7 @@
+# arduino-cli build output (default output dir is build/<board>/)
+build/
+
+# Editor / OS cruft
+*.swp
+*.swo
+.DS_Store
