@@ -43,5 +43,5 @@ jobs:
               exit 1
             fi
             echo "== Compiling $name"
-            arduino-cli compile --fqbn arduino:avr:uno --clean "$name/$name"
+            arduino-cli compile --fqbn arduino:avr:uno --clean "$name"
           done
